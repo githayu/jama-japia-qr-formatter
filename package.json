@@ -4,6 +4,7 @@
   "version": "0.0.0-development",
   "scripts": {
     "test": "jest --coverage",
+    "test:ci": "jest",
     "build": "rm -rf ./dist && tsc -p tsconfig.prod.json",
     "semantic-release": "semantic-release"
   },
