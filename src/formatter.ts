@@ -14,18 +14,18 @@ const RS = escapeRegExp('%1E')
 const GS = escapeRegExp('%1D')
 const EOT = escapeRegExp('%04')
 
-export interface QRDecoderProps {
+export interface QRFormatterProps {
   data: string
   isGSOnly?: boolean
   isEncoded?: boolean
 }
 
 /**
- * QR文字列をデコード
+ * QR文字列をフォーマット
  */
-const QRDecoder = ({ data, isGSOnly, isEncoded }: QRDecoderProps) => {
+const QRFormatter = ({ data, isGSOnly, isEncoded }: QRFormatterProps) => {
   const reqData = isEncoded ? data : encodeURIComponent(data)
-  const result = isGSOnly ? decodeGroupSeparator(reqData) : decodeCore(reqData)
+  const result = isGSOnly ? formatGroupSeparator(reqData) : format(reqData)
 
   return !result ? data : result
 }
@@ -33,7 +33,7 @@ const QRDecoder = ({ data, isGSOnly, isEncoded }: QRDecoderProps) => {
 /**
  * 多品一葉のメッセージデータを取得する
  */
-const decodeCore = (str: string) => {
+const format = (str: string) => {
   // メッセージエンベロープの探索
   const messageEnvelope = str.match(new RegExp(`${MESSAGE_HEADER}(.+)${EOT}`))
 
@@ -74,10 +74,10 @@ const decodeCore = (str: string) => {
 }
 
 /**
- * HIDコードスキャナー (GS)
- * 先頭のフォーマットエンベロープのみ取得
+ * GS 制御文字のみのフォーマット
+ * 一品一葉のみ対応
  */
-const decodeGroupSeparator = (str: string) => {
+const formatGroupSeparator = (str: string) => {
   /**
    * フォーマットエンベロープの探索
    * [)>RS06
@@ -111,7 +111,6 @@ const decodeGroupSeparator = (str: string) => {
 
 /**
  * 帳票区分を取得
- * @param data
  */
 export const detectLedgerSheet = (
   data: string
@@ -166,4 +165,4 @@ const detectDataId: detectDataId = (data) => {
   }
 }
 
-export default QRDecoder
+export default QRFormatter

@@ -1,14 +1,22 @@
 # JAMA･JAPIA QR Formatter
 
+[![npm version](https://badge.fury.io/js/jama-japia-qr-formatter.svg)](https://www.npmjs.com/package/jama-japia-qr-formatter)
+[![Actions Status](https://github.com/githayu/jama-japia-qr-formatter/workflows/Node%20CI/badge.svg)](https://github.com/githayu/jama-japia-qr-formatter/actions)
+[![GitHub license](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
 標準帳票ガイドラインで標準化されている QR コードのフォーマットを行います。
 
 ## Installation
 
-```sh
-# with npm
-npm install jama-japia-qr-formatter
+### npm
 
-# with yarn
+```sh
+npm install jama-japia-qr-formatter
+```
+
+### yarn
+
+```sh
 yarn add jama-japia-qr-formatter
 ```
 

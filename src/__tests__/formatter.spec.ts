@@ -1,9 +1,9 @@
-import decoder, { detectLedgerSheet } from '../decoder'
+import formatter, { detectLedgerSheet } from '../formatter'
 import * as mocks from '../mocks'
 
-describe('QRDecoder', () => {
+describe('formatter', () => {
   test('default', () => {
-    const result = decoder({
+    const result = formatter({
       data: mocks.standard.standard,
       isGSOnly: false,
       isEncoded: true,
@@ -19,7 +19,7 @@ describe('QRDecoder', () => {
   })
 
   test('GS制御文字のみ', () => {
-    const result = decoder({
+    const result = formatter({
       data: mocks.standard.GSOnly,
       isGSOnly: true,
       isEncoded: true,
@@ -35,7 +35,7 @@ describe('QRDecoder', () => {
   })
 
   test('多品一葉', () => {
-    const result = decoder({
+    const result = formatter({
       data: mocks.standard.multiple,
       isEncoded: true,
     })
@@ -44,7 +44,7 @@ describe('QRDecoder', () => {
   })
 
   test('フォーマット不可', () => {
-    const result = decoder({ data: 'ABC' })
+    const result = formatter({ data: 'ABC' })
 
     expect(result).toBe('ABC')
   })

@@ -1,4 +1,4 @@
-export * from './decoder'
+export * from './formatter'
 export * from './identifiers'
 
-export { default as QRDecoder } from './decoder'
+export { default as QRFormatter } from './formatter'
