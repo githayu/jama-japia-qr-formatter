@@ -1,6 +1,6 @@
 # JAMA･JAPIA QR Formatter
 
-[![Actions Status](https://github.com/githayu/jama-japia-qr-formatter/workflows/Node%20CI/badge.svg)](https://github.com/githayu/jama-japia-qr-formatter/actions)
+[![Actions Status](https://github.com/githayu/jama-japia-qr-formatter/workflows/release/badge.svg)](https://github.com/githayu/jama-japia-qr-formatter/actions)
 [![npm version](https://badge.fury.io/js/jama-japia-qr-formatter.svg)](https://www.npmjs.com/package/jama-japia-qr-formatter)
 [![GitHub license](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
