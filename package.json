@@ -1,7 +1,7 @@
 {
   "name": "jama-japia-qr-formatter",
   "description": "Format the QR code of the standard ledger sheet guideline.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "test": "jest --coverage",
     "build": "rm -rf ./dist && tsc -p tsconfig.prod.json"
