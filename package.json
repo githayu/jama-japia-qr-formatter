@@ -1,0 +1,25 @@
+{
+  "name": "jama-japia-qr-formatter",
+  "description": "Format the QR code of the standard ledger sheet guideline.",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "jest --coverage",
+    "build": "rm -rf ./dist && tsc -p tsconfig.prod.json"
+  },
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "devDependencies": {
+    "@types/jest": "^24.0.24",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.2.0",
+    "typescript": "^3.7.4"
+  },
+  "author": {
+    "name": "Hayu",
+    "email": "admin@hayu.io"
+  },
+  "repository": "github:githayu/jama-japia-qr-formatter",
+  "files": [
+    "dist"
+  ]
+}
