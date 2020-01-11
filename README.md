@@ -1,10 +1,10 @@
 # JAMA･JAPIA QR Formatter
 
-[![npm version](https://badge.fury.io/js/jama-japia-qr-formatter.svg)](https://www.npmjs.com/package/jama-japia-qr-formatter)
 [![Actions Status](https://github.com/githayu/jama-japia-qr-formatter/workflows/Node%20CI/badge.svg)](https://github.com/githayu/jama-japia-qr-formatter/actions)
+[![npm version](https://badge.fury.io/js/jama-japia-qr-formatter.svg)](https://www.npmjs.com/package/jama-japia-qr-formatter)
 [![GitHub license](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-標準帳票ガイドラインで標準化されている QR コードのフォーマットを行います。
+標準帳票ガイドラインで策定されている QR コードのフォーマットを行います。
 
 ## Installation
 
@@ -46,9 +46,7 @@ if (Array.isArray(formatted)) {
 }
 ```
 
-### 帳票区分
-
-帳票区分の詳細を取得する例
+### 詳細な帳票区分の取得例
 
 ```ts
 import { detectLedgerSheet } from 'jama-japia-qr-formatter'
@@ -86,13 +84,14 @@ QRFormatter(QRFormatterProps): string | Map<dataIdsType, {
 
 #### QRFormatterProps
 
-| Property  | Type    | Default | Description                                                               |
-| --------- | ------- | ------- | ------------------------------------------------------------------------- |
-| data \*   | string  |         | QR コード文字列                                                           |
-| isGSOnly  | boolean | false   | `true` の場合、GS 制御文字のみでフォーマットを行います。※一品一葉のみ対応 |
-| isEncoded | boolean | false   | `true` の場合、`data` 文字列のエンコードを行いません。                    |
+| Property  | Type    | Default | Description                                              |
+| --------- | ------- | ------- | -------------------------------------------------------- |
+| data \*   | string  |         | QR コード文字列                                          |
+| isGSOnly  | boolean | false   | `true` の場合、GS 制御文字のみでフォーマットを行います。 |
+| isEncoded | boolean | false   | `true` の場合、`data` 文字列のエンコードを行いません。   |
 
-`isGSOnly` は、HID コードスキャナーなどでの使用を想定しています。  
+`isGSOnly` は、HID コードスキャナーなどでの使用を想定しています。※一品一葉のみ対応
+
 `isEncoded` を有効にした場合は、事前に文字列のエンコードを行ってください。
 
 フォーマットが行えない場合は、入力文字列をそのまま返却します。
