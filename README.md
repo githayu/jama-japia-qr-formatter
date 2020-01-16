@@ -27,47 +27,73 @@ yarn add jama-japia-qr-formatter
 ```ts
 import { QRFormatter } from 'jama-japia-qr-formatter'
 
-const formatted = QRFormatter({
-  data: '[)>...EOT',
-})
+const formatted = new QRFormatter({
+  data: '[)>...9K201XXXXX...EOT',
+}).format()
 
 if (Array.isArray(formatted)) {
   formatted.forEach((map) => {
     console.log(map.get('9K'))
 
-    // {
-    //   key: 'ledgerSheetType',
-    //   data: '201XXXXX',
-    //   label: '帳票区分',
-    // }
+    // '201XXXXX'
   })
-} else {
-  console.log(formatted)
 }
 ```
 
-### 詳細な帳票区分の取得例
+### 各社固有項目の取得例
 
 ```ts
-import { detectLedgerSheet } from 'jama-japia-qr-formatter'
+import { QRFormatter } from 'jama-japia-qr-formatter'
 
-const type = detectLedgerSheet('201XXXXX')
+// 想定される値
+const zTypes = {
+  A: 'Label',
+}
 
-console.log(type)
+const formatted = new QRFormatter<typeof zTypes>(
+  {
+    data: '[)>...ZA12...EOT',
+    Z: zTypes,
+  },
+  // 任意の変換処理
+  (z) => [
+    {
+      id: 'A',
+      data: z.substr(1, 2),
+    },
+  ]
+).format()
 
-// {
-//   a: {
-//     id: '20',
-//     label: 'かんばん',
-//   },
-//   b: {
-//     id: '1',
-//     label: '量産部品',
-//   },
-//   c: {
-//     id: 'XXXXX',
-//   }
-// }
+if (Array.isArray(formatted)) {
+  formatted.forEach((map) => {
+    console.log(map.get('A'))
+
+    // '12'
+  })
+}
+```
+
+### カスタムデータ拡張子の取得例
+
+```ts
+import { QRFormatter } from 'jama-japia-qr-formatter'
+
+// カスタムデータ拡張子
+type customIds = '1X' | '1Y'
+const customIds: customIds[] = ['1X', '1Y']
+
+const formatted = new QRFormatter<{}, customIds>({
+  data: '[)>...1XYZ...EOT',
+  dataIdentifiers: customIds,
+}).format()
+
+if (Array.isArray(formatted)) {
+  formatted.forEach((map) => {
+    console.log(map.get('1X'))
+
+    // 'YZ'
+  })
+}
 ```
 
 ## API
@@ -75,36 +101,57 @@ console.log(type)
 ### QRFormatter
 
 ```ts
-QRFormatter(QRFormatterProps): string | Map<dataIdsType, {
-  key: string     // 名
-  data: string    // 値
-  label: string   // 日本語ラベル
-}>[]
+new QRFormatter<Z, T>(Request, ZFormatter)
 ```
 
-#### QRFormatterProps
+#### Request
 
-| Property  | Type    | Default | Description                                              |
-| --------- | ------- | ------- | -------------------------------------------------------- |
-| data \*   | string  |         | QR コード文字列                                          |
-| isGSOnly  | boolean | false   | `true` の場合、GS 制御文字のみでフォーマットを行います。 |
-| isEncoded | boolean | false   | `true` の場合、`data` 文字列のエンコードを行いません。   |
+| Property  | Type    | Default | Description                                                                                                                                                        |
+| --------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| data \*   | string  |         | QR コード文字列                                                                                                                                                    |
+| isGSOnly  | boolean | false   | `true` の場合、GS 制御文字のみでフォーマットを行います。                                                                                                           |
+| isEncoded | boolean | false   | `true` の場合、`data` 文字列のエンコードを行いません。                                                                                                             |
+| Z         | Z       |         | [各社固有項目](#%e5%90%84%e7%a4%be%e5%9b%ba%e6%9c%89%e9%a0%85%e7%9b%ae%e3%81%ae%e5%8f%96%e5%be%97%e4%be%8b)のフォーマットを行う場合に設定します。                  |
+| T         | T       |         | [カスタムデータ拡張子](#%e3%82%ab%e3%82%b9%e3%82%bf%e3%83%a0%e6%8b%a1%e5%bc%b5%e5%ad%90%e3%81%ae%e5%8f%96%e5%be%97%e4%be%8b)のフォーマットを行う場合に設定します。 |
 
 `isGSOnly` は、HID コードスキャナーなどでの使用を想定しています。※一品一葉のみ対応
 
 `isEncoded` を有効にした場合は、事前に文字列のエンコードを行ってください。
 
-フォーマットが行えない場合は、入力文字列をそのまま返却します。
-
-#### dataIdsType
-
-- Type: `string`
-- Value: `9K`, `P`, `20P` などのデータ拡張子
-
-### detectLedgerSheet
+#### ZFormatter
 
 ```ts
-detectLedgerSheet(data: string): {
+(z: string, map: Map<dataIds, { key?: string, data: string, label: string }>): {
+  id: string      // Map Key
+  data: string    // 値
+}[]
+```
+
+`z` 変数を `ZFormatter` で処理することで Map オブジェクトに追加されます。
+
+`id` と `data` のオブジェクト配列を返す必要があります。
+
+`map` 変数には通常のフォーマット済み Map オブジェクトが含まれます。
+
+### QRFormatter.format
+
+```ts
+(): string | Map<dataIds, string>[]
+```
+
+フォーマットが行えない場合は、入力文字列をそのまま返却します。
+
+#### dataIds
+
+- Type: `string`
+- Value: `9K`, `P`, `20P` などの定義済みデータ拡張子及び各社固有項目やカスタムデータ拡張子
+
+### QRFormatter.detectLedgerSheet
+
+詳細な帳票区分の取得が行えます。
+
+```ts
+(data: string): {
   a: {
     id: string            // 値
     label?: string        // 日本語ラベル

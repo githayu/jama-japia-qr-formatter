@@ -47,7 +47,7 @@ export const workTypes = {
   '4': '補修品・用品',
 }
 
-export const dataIds = {
+export const dataIdDetails = {
   V8: {
     key: 'ordererCode',
     label: '発注者コード',
@@ -142,4 +142,5 @@ export const dataIds = {
   },
 }
 
-export type dataIdsType = keyof typeof dataIds
+export const dataIds = Object.keys(dataIdDetails)
+export type dataIdsType = keyof typeof dataIdDetails

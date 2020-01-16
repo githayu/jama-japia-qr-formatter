@@ -14,154 +14,172 @@ const RS = escapeRegExp('%1E')
 const GS = escapeRegExp('%1D')
 const EOT = escapeRegExp('%04')
 
-export interface QRFormatterProps {
+export interface DetectDataId<T> {
+  id: dataIdsType | T
   data: string
-  isGSOnly?: boolean
-  isEncoded?: boolean
 }
 
-/**
- * QR文字列をフォーマット
- */
-const QRFormatter = ({ data, isGSOnly, isEncoded }: QRFormatterProps) => {
-  const reqData = isEncoded ? data : encodeURIComponent(data)
-  const result = isGSOnly ? formatGroupSeparator(reqData) : format(reqData)
+type dataIdsKeys<T> = T | dataIdsType
 
-  return !result ? data : result
-}
-
-/**
- * 多品一葉のメッセージデータを取得する
- */
-const format = (str: string) => {
-  // メッセージエンベロープの探索
-  const messageEnvelope = str.match(new RegExp(`${MESSAGE_HEADER}(.+)${EOT}`))
-
-  if (!messageEnvelope) {
-    return
+class QRFormatter<Z = {}, T = {}> {
+  get data() {
+    return this.req.isEncoded
+      ? this.req.data
+      : encodeURIComponent(this.req.data)
   }
 
-  // メッセージエンベロープの取得
-  const formatEnvelopes = messageEnvelope.pop()
-
-  if (!formatEnvelopes) {
-    return
+  get dataIds() {
+    return Array.isArray(this.req.dataIdentifiers)
+      ? [...dataIds, ...this.req.dataIdentifiers]
+      : dataIds
   }
 
-  // フォーマットエンベロープの探索
-  const formatEnvelope = formatEnvelopes.match(
-    new RegExp(`(?<=${FORMAT_HEADER}).+?(?=${RS})`, 'g')
-  )
+  constructor(
+    public req: {
+      data: string
+      isGSOnly?: boolean
+      isEncoded?: boolean
+      dataIdentifiers?: T[]
+      Z?: Z
+    },
+    public formatZ?: (
+      z: string,
+      map: Map<dataIdsKeys<T> | keyof Z, string>
+    ) => DetectDataId<keyof Z>[]
+  ) {}
 
-  if (!formatEnvelope) {
-    return
-  }
-
-  // フォーマットデータの取得
-  return formatEnvelope.map((data) =>
-    data.split(GS).reduce((map, item) => {
-      const dataId = detectDataId(item)
-
-      if (dataId) {
-        const { id, ...values } = dataId
-
-        map.set(id, values)
-      }
-
-      return map
-    }, new Map<dataIdsType, detectedType>())
-  )
-}
-
-/**
- * GS 制御文字のみのフォーマット
- * 一品一葉のみ対応
- */
-const formatGroupSeparator = (str: string) => {
   /**
-   * フォーマットエンベロープの探索
-   * [)>RS06
+   * QR文字列をフォーマット
    */
-  const formatMatch = str.match(/^%5B\)%3E06(.+)$/)
+  format() {
+    const result = this.req.isGSOnly
+      ? this.formatGroupSeparator()
+      : this.formatAllSeparator()
 
-  if (!formatMatch) {
-    return
+    return !result ? this.data : result
   }
 
-  // フォーマットエンベロープを取得
-  const formatData = formatMatch.pop()
+  /**
+   * 多品一葉のメッセージデータを取得する
+   */
+  formatAllSeparator() {
+    // メッセージエンベロープの探索
+    const messageEnvelope = this.data.match(
+      new RegExp(`${MESSAGE_HEADER}(.+)${EOT}`)
+    )
 
-  if (!formatData) {
-    return
+    if (!messageEnvelope) {
+      return
+    }
+
+    // メッセージエンベロープの取得
+    const formatEnvelopes = messageEnvelope.pop()
+
+    if (!formatEnvelopes) {
+      return
+    }
+
+    // フォーマットエンベロープの探索
+    const formatEnvelope = formatEnvelopes.match(
+      new RegExp(`(?<=${FORMAT_HEADER}).+?(?=${RS})`, 'g')
+    )
+
+    if (!formatEnvelope) {
+      return
+    }
+
+    // フォーマットデータの取得
+    return formatEnvelope.map((data) => this.createMap(data.split(GS)))
   }
 
-  return [
-    formatData.split(GS).reduce((map, item) => {
-      const dataId = detectDataId(item)
+  /**
+   * GS 制御文字のみのフォーマット
+   * 一品一葉のみ対応
+   */
+  formatGroupSeparator() {
+    /**
+     * フォーマットエンベロープの探索
+     * [)>RS06
+     */
+    const formatMatch = this.data.match(/^%5B\)%3E06(.+)$/)
+
+    if (!formatMatch) {
+      return
+    }
+
+    // フォーマットエンベロープを取得
+    const formatData = formatMatch.pop()
+
+    if (!formatData) {
+      return
+    }
+
+    return [this.createMap(formatData.split(GS))]
+  }
+
+  createMap(data: string[]) {
+    const map = data.reduce((map, item) => {
+      const dataId = this.detectDataId(item)
 
       if (dataId) {
-        const { id, ...values } = dataId
-        map.set(id, values)
+        const { id, data } = dataId
+
+        map.set(id, data)
       }
 
       return map
-    }, new Map<dataIdsType, detectedType>()),
-  ]
-}
+    }, new Map<dataIdsKeys<T> | keyof Z, string>())
 
-/**
- * 帳票区分を取得
- */
-export const detectLedgerSheet = (
-  data: string
-): {
-  a: { id: string; label?: string; description?: string }
-  b: { id: string; label?: string }
-  c: { id: string }
-} => {
-  const a = data.substr(0, 2) as keyof typeof ledgerSheetTypes
-  const b = data.substr(2, 1) as keyof typeof workTypes
-  const c = data.substr(3, 5)
+    if (this.formatZ && map.has('Z')) {
+      const zRes = this.formatZ(map.get('Z') || '', map)
 
-  return {
-    a: { id: a, ...ledgerSheetTypes[a] },
-    b: { id: b, label: workTypes[b] },
-    c: { id: c },
-  }
-}
+      if (Array.isArray(zRes)) {
+        zRes.forEach(({ id, data }) => map.set(id, data))
+      }
+    }
 
-export interface detectedType {
-  key: string
-  data: string
-  label: string
-}
-
-interface detectDataId {
-  (data: string):
-    | (detectedType & {
-        id: dataIdsType
-      })
-    | undefined
-}
-
-/**
- * データ拡張子をフォーマット
- */
-const detectDataId: detectDataId = (data) => {
-  const [id, info] =
-    Object.entries(dataIds).find(([id]) => data.startsWith(id)) || []
-
-  if (!id || !info) {
-    return
+    return map
   }
 
-  const payload = decodeURIComponent(data.substr(id.length))
+  /**
+   * データ拡張子のフォーマット
+   */
+  detectDataId(data: string): DetectDataId<T> | undefined {
+    const id = this.dataIds.find((id): id is string =>
+      typeof id === 'string' ? data.startsWith(id) : false
+    )
 
-  return {
-    id: id as dataIdsType,
-    key: info.key,
-    data: payload,
-    label: info.label,
+    if (!id) {
+      return
+    }
+
+    const payload = decodeURIComponent(data.substr(id.length))
+
+    return {
+      id: id as dataIdsKeys<T>,
+      data: payload,
+    }
+  }
+
+  /**
+   * 帳票区分を取得
+   */
+  static detectLedgerSheet(
+    data: string
+  ): {
+    a: { id: string; label?: string; description?: string }
+    b: { id: string; label?: string }
+    c: { id: string }
+  } {
+    const a = data.substr(0, 2) as keyof typeof ledgerSheetTypes
+    const b = data.substr(2, 1) as keyof typeof workTypes
+    const c = data.substr(3, 5)
+
+    return {
+      a: { id: a, ...ledgerSheetTypes[a] },
+      b: { id: b, label: workTypes[b] },
+      c: { id: c },
+    }
   }
 }
 
