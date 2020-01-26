@@ -6,6 +6,8 @@
 
 標準帳票ガイドラインで策定されている QR コードのフォーマットを行います。
 
+TypeScript をサポートしています。
+
 ## Installation
 
 ### npm
@@ -42,6 +44,8 @@ if (Array.isArray(formatted)) {
 
 ### 各社固有項目の取得例
 
+各社固有項目を処理するコールバック関数の指定が行なえます。
+
 ```ts
 import { QRFormatter } from 'jama-japia-qr-formatter'
 
@@ -55,13 +59,15 @@ const formatted = new QRFormatter<typeof zTypes>(
     data: '[)>...ZA12...EOT',
     Z: zTypes,
   },
-  // 任意の変換処理
-  (z) => [
-    {
-      id: 'A',
-      data: z.substr(1, 2),
-    },
-  ]
+  (z) => {
+    // 任意の変換処理
+    return [
+      {
+        id: 'A',
+        data: z.substr(1, 2),
+      },
+    ]
+  }
 ).format()
 
 if (Array.isArray(formatted)) {
@@ -74,6 +80,8 @@ if (Array.isArray(formatted)) {
 ```
 
 ### カスタムデータ拡張子の取得例
+
+既定のデータ拡張子以外をフォーマットすることが行なえます。
 
 ```ts
 import { QRFormatter } from 'jama-japia-qr-formatter'
@@ -106,13 +114,13 @@ new QRFormatter<Z, T>(Request, ZFormatter)
 
 #### Request
 
-| Property        | Type            | Default | Description                                                                                                                                                        |
-| --------------- | --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| data \*         | string          |         | QR コード文字列                                                                                                                                                    |
-| isGSOnly        | boolean         | false   | `true` の場合、GS 制御文字のみでフォーマットを行います。                                                                                                           |
-| isEncoded       | boolean         | false   | `true` の場合、`data` 文字列のエンコードを行いません。                                                                                                             |
-| Z               | Z               |         | [各社固有項目](#%e5%90%84%e7%a4%be%e5%9b%ba%e6%9c%89%e9%a0%85%e7%9b%ae%e3%81%ae%e5%8f%96%e5%be%97%e4%be%8b)のフォーマットを行う場合に設定します。                  |
-| dataIdentifiers | dataIdentifiers |         | [カスタムデータ拡張子](#%e3%82%ab%e3%82%b9%e3%82%bf%e3%83%a0%e6%8b%a1%e5%bc%b5%e5%ad%90%e3%81%ae%e5%8f%96%e5%be%97%e4%be%8b)のフォーマットを行う場合に設定します。 |
+| Property        | Type            | Default | Description                                                                                                                                                                                    |
+| --------------- | --------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| data \*         | string          |         | QR コード文字列                                                                                                                                                                                |
+| isGSOnly        | boolean         | false   | `true` の場合、GS 制御文字のみでフォーマットを行います。                                                                                                                                       |
+| isEncoded       | boolean         | false   | `true` の場合、`data` 文字列のエンコードを行いません。                                                                                                                                         |
+| Z               | Z               |         | [各社固有項目](#%e5%90%84%e7%a4%be%e5%9b%ba%e6%9c%89%e9%a0%85%e7%9b%ae%e3%81%ae%e5%8f%96%e5%be%97%e4%be%8b) のフォーマットを行う場合に設定します。                                             |
+| dataIdentifiers | dataIdentifiers |         | [カスタムデータ拡張子](#%e3%82%ab%e3%82%b9%e3%82%bf%e3%83%a0%e3%83%87%e3%83%bc%e3%82%bf%e6%8b%a1%e5%bc%b5%e5%ad%90%e3%81%ae%e5%8f%96%e5%be%97%e4%be%8b) のフォーマットを行う場合に指定します。 |
 
 `isGSOnly` は、HID コードスキャナーなどでの使用を想定しています。※一品一葉のみ対応
 
@@ -121,15 +129,15 @@ new QRFormatter<Z, T>(Request, ZFormatter)
 #### ZFormatter
 
 ```ts
-(z: string, map: Map<dataIds, { key?: string, data: string, label: string }>): {
+(z: string, map: Map<dataIds, string>): {
   id: string      // Map Key
-  data: string    // 値
+  data: string    // Map Value
 }[]
 ```
 
-`z` 変数を `ZFormatter` で処理することで Map オブジェクトに追加されます。
+`z` 変数をコールバック関数で処理することで Map オブジェクトに追加されます。
 
-`id` と `data` のオブジェクト配列を返す必要があります。
+`id` と `data` プロパティのオブジェクト配列を返す必要があります。
 
 `map` 変数には通常のフォーマット済み Map オブジェクトが含まれます。
 
@@ -151,7 +159,7 @@ new QRFormatter<Z, T>(Request, ZFormatter)
 詳細な帳票区分の取得が行えます。
 
 ```ts
-(data: string): {
+(data: string): {         // データ拡張子: 9K
   a: {
     id: string            // 値
     label?: string        // 日本語ラベル
