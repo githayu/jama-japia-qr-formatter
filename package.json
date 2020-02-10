@@ -5,10 +5,14 @@
   "scripts": {
     "test": "jest --coverage",
     "test:ci": "jest",
-    "build": "rm -rf ./dist && tsc -p tsconfig.prod.json",
+    "build": "rm -rf ./dist && yarn build:common && yarn build:esm",
+    "build:common": "tsc -p tsconfig.common.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
     "semantic-release": "semantic-release"
   },
   "license": "MIT",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "main": "./dist/index.js",
   "devDependencies": {
     "@types/jest": "^24.9.1",
