@@ -21,7 +21,7 @@ export interface DetectDataId<T> {
 
 type dataIdsKeys<T> = T | dataIdsType
 
-class QRFormatter<Z = {}, T = {}> {
+class QRFormatter<Z = {}, T = dataIdsType> {
   get data() {
     return this.req.isEncoded
       ? this.req.data
