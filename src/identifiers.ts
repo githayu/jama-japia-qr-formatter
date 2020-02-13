@@ -48,7 +48,7 @@ export const workTypes = {
 }
 
 export const dataIdDetails = {
-  V8: {
+  '8V': {
     key: 'ordererCode',
     label: '発注者コード',
   },

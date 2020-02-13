@@ -131,7 +131,7 @@ class QRFormatter<Z = {}, T = dataIdsType> {
     }, new Map<dataIdsKeys<T> | keyof Z, string>())
 
     if (this.formatZ && map.has('Z')) {
-      const zRes = this.formatZ(map.get('Z') || '', map)
+      const zRes = this.formatZ(map.get('Z') ?? '', map)
 
       if (Array.isArray(zRes)) {
         zRes.forEach(({ id, data }) => map.set(id, data))

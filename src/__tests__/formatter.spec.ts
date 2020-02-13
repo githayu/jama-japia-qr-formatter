@@ -54,7 +54,7 @@ describe('formatter', () => {
     const zFormatter = (str: string) => {
       const ids = str.split(';').map((item) => {
         const [id, info] =
-          Object.entries(zIds).find(([id]) => item.startsWith(id)) || []
+          Object.entries(zIds).find(([id]) => item.startsWith(id)) ?? []
 
         if (!id || !info) return
 
