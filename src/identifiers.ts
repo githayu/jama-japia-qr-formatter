@@ -142,5 +142,6 @@ export const dataIdDetails = {
   },
 }
 
-export const dataIds = Object.keys(dataIdDetails)
-export type dataIdsType = keyof typeof dataIdDetails
+export type DataIds = keyof typeof dataIdDetails
+
+export const dataIds = Object.keys(dataIdDetails) as DataIds[]

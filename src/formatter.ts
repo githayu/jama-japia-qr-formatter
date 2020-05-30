@@ -1,9 +1,4 @@
-import {
-  dataIds,
-  ledgerSheetTypes,
-  workTypes,
-  dataIdsType,
-} from './identifiers'
+import { dataIds, ledgerSheetTypes, workTypes, DataIds } from './identifiers'
 
 const escapeRegExp = (str: string) =>
   str.replace(/[.*+?^=!:${}()|[\]\/\\]/g, '\\$&')
@@ -14,14 +9,27 @@ const RS = escapeRegExp('%1E')
 const GS = escapeRegExp('%1D')
 const EOT = escapeRegExp('%04')
 
-export interface DetectDataId<T> {
-  id: dataIdsType | T
+export type DetectDataId<T> = {
+  id: DataIds | T
   data: string
 }
 
-type dataIdsKeys<T> = T | dataIdsType
+type dataIdsKeys<T> = T | DataIds
 
-class QRFormatter<Z = {}, T = dataIdsType> {
+export type QRFormatterRequest<Z, T = DataIds> = {
+  data: string
+  isGSOnly?: boolean
+  isEncoded?: boolean
+  dataIdentifiers?: Readonly<T[]>
+  formatZ?: QRFormatZ<Z, T>
+}
+
+export type QRFormatZ<Z, T = DataIds> = (
+  z: string,
+  map: Map<dataIdsKeys<T> | Z[][number], string>
+) => DetectDataId<Z[][number]>[]
+
+class QRFormatter<Z, T = DataIds> {
   get data() {
     return this.req.isEncoded
       ? this.req.data
@@ -34,19 +42,7 @@ class QRFormatter<Z = {}, T = dataIdsType> {
       : dataIds
   }
 
-  constructor(
-    public req: {
-      data: string
-      isGSOnly?: boolean
-      isEncoded?: boolean
-      dataIdentifiers?: T[]
-      Z?: Z
-    },
-    public formatZ?: (
-      z: string,
-      map: Map<dataIdsKeys<T> | keyof Z, string>
-    ) => DetectDataId<keyof Z>[]
-  ) {}
+  constructor(public readonly req: QRFormatterRequest<Z, T>) {}
 
   /**
    * QR文字列をフォーマット
@@ -128,10 +124,10 @@ class QRFormatter<Z = {}, T = dataIdsType> {
       }
 
       return map
-    }, new Map<dataIdsKeys<T> | keyof Z, string>())
+    }, new Map<dataIdsKeys<T> | Z[][number], string>())
 
-    if (this.formatZ && map.has('Z')) {
-      const zRes = this.formatZ(map.get('Z') ?? '', map)
+    if (this.req.formatZ && map.has('Z')) {
+      const zRes = this.req.formatZ(map.get('Z') ?? '', map)
 
       if (Array.isArray(zRes)) {
         zRes.forEach(({ id, data }) => map.set(id, data))

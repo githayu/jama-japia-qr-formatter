@@ -1,4 +1,4 @@
-import QRFormatter, { DetectDataId } from '../formatter'
+import QRFormatter, { DetectDataId, QRFormatZ } from '../formatter'
 import * as mocks from './mocks'
 
 describe('formatter', () => {
@@ -43,42 +43,26 @@ describe('formatter', () => {
   })
 
   test('固有項目', () => {
-    const zIds = {
-      A: 'ABC',
-      B: 'BCD',
-      C: 'CDE',
-      D: 'DEF',
-      E: 'EFG',
-    }
+    const ZIds = ['9S', '2B', 'C', 'D', 'E'] as const
+    type ZIds = typeof ZIds[number]
 
-    const zFormatter = (str: string) => {
-      const ids = str.split(';').map((item) => {
-        const [id, info] =
-          Object.entries(zIds).find(([id]) => item.startsWith(id)) ?? []
+    const result = new QRFormatter<ZIds>({
+      data: mocks.data01,
+      isEncoded: true,
+      formatZ: (str) => {
+        return str.split(';').reduce<DetectDataId<ZIds>[]>((prev, item) => {
+          const id = ZIds.find((id) => item.startsWith(id))
 
-        if (!id || !info) return
+          if (!id) return prev
 
-        const data = decodeURIComponent(item.substr(id.length))
+          const data = decodeURIComponent(item.substr(id.length))
 
-        return {
-          id,
-          data,
-        }
-      })
+          prev.push({ id, data })
 
-      return ids.filter(
-        (item): item is DetectDataId<keyof typeof zIds> => !!item
-      )
-    }
-
-    const result = new QRFormatter<typeof zIds>(
-      {
-        data: mocks.data01,
-        isEncoded: true,
-        Z: zIds,
+          return prev
+        }, [])
       },
-      zFormatter
-    ).format()
+    }).format()
 
     expect(Array.isArray(result)).toBeTruthy()
 
@@ -90,10 +74,9 @@ describe('formatter', () => {
   })
 
   test('カスタム拡張子', () => {
-    type customIds = 'W' | '1Z'
-    const customIds: customIds[] = ['W', '1Z']
+    const customIds = ['W', '1Z'] as const
 
-    const result = new QRFormatter<{}, customIds>({
+    const result = new QRFormatter({
       data: mocks.data04,
       isEncoded: true,
       dataIdentifiers: customIds,
