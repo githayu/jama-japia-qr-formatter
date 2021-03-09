@@ -77,7 +77,7 @@ class QRFormatter<Z, T = DataIds> {
 
     // フォーマットエンベロープの探索
     const formatEnvelope = formatEnvelopes.match(
-      new RegExp(`(?<=${FORMAT_HEADER}).+?(?=${RS})`, 'g')
+      new RegExp(`${FORMAT_HEADER}.+?${RS}`, 'g')
     )
 
     if (!formatEnvelope) {
@@ -85,7 +85,16 @@ class QRFormatter<Z, T = DataIds> {
     }
 
     // フォーマットデータの取得
-    return formatEnvelope.map((data) => this.createMap(data.split(GS)))
+    const result = formatEnvelope.map((data) =>
+      this.createMap(
+        data
+          .replace(new RegExp(`^${FORMAT_HEADER}`), '')
+          .replace(new RegExp(`${RS}$`), '')
+          .split(GS)
+      )
+    )
+
+    return result
   }
 
   /**
